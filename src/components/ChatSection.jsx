@@ -200,6 +200,7 @@ export default function ChatSection({
         history,
         chartContext: buildChartContext(chartData, language),
         compressedContext: conversation?.compressedContext || '',
+        conversationId: conversation?._id || undefined,
       })
 
       const assistantMsg = {

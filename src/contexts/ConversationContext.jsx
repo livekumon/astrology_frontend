@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { apiUrl, parseJsonResponse } from '../api/config'
 import { useAuth } from './AuthContext'
 
 const ConversationContext = createContext(null)
@@ -35,11 +36,11 @@ export function ConversationProvider({ children }) {
     if (!token) return
     setLoadingList(true)
     try {
-      const res = await fetch('/api/conversations', {
+      const res = await fetch(apiUrl('/conversations'), {
         headers: authHeader(),
       })
       if (!res.ok) return
-      const data = await res.json()
+      const data = await parseJsonResponse(res)
       setConversations(data.conversations || [])
     } finally {
       setLoadingList(false)
@@ -49,13 +50,13 @@ export function ConversationProvider({ children }) {
   const createConversation = useCallback(
     async (chartData, language, name) => {
       if (!token) return null
-      const res = await fetch('/api/conversations', {
+      const res = await fetch(apiUrl('/conversations'), {
         method: 'POST',
         headers: { ...authHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ chartData, language, name: name || 'New Reading' }),
       })
       if (!res.ok) return null
-      const data = await res.json()
+      const data = await parseJsonResponse(res)
       const conv = data.conversation
       setConversations((prev) => [conv, ...prev])
       setActiveConversation(conv)
@@ -67,11 +68,11 @@ export function ConversationProvider({ children }) {
   const loadConversation = useCallback(
     async (id) => {
       if (!token) return null
-      const res = await fetch(`/api/conversations/${id}`, {
+      const res = await fetch(apiUrl(`/conversations/${id}`), {
         headers: authHeader(),
       })
       if (!res.ok) return null
-      const data = await res.json()
+      const data = await parseJsonResponse(res)
       setActiveConversation(data.conversation)
       return data.conversation
     },
@@ -84,13 +85,13 @@ export function ConversationProvider({ children }) {
       const trimmed = name.trim()
       if (!trimmed) return false
 
-      const res = await fetch(`/api/conversations/${id}`, {
+      const res = await fetch(apiUrl(`/conversations/${id}`), {
         method: 'PATCH',
         headers: { ...authHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: trimmed }),
       })
       if (!res.ok) return false
-      const data = await res.json()
+      const data = await parseJsonResponse(res)
 
       setConversations((prev) =>
         prev.map((c) => (sameId(c._id, id) ? { ...c, ...data.conversation } : c)),
@@ -109,7 +110,7 @@ export function ConversationProvider({ children }) {
   const deleteConversation = useCallback(
     async (id) => {
       if (!token) return
-      const res = await fetch(`/api/conversations/${id}`, {
+      const res = await fetch(apiUrl(`/conversations/${id}`), {
         method: 'DELETE',
         headers: authHeader(),
       })
@@ -123,13 +124,13 @@ export function ConversationProvider({ children }) {
   const appendMessages = useCallback(
     async (conversationId, userMessage, assistantMessage) => {
       if (!token) return null
-      const res = await fetch(`/api/conversations/${conversationId}/messages`, {
+      const res = await fetch(apiUrl(`/conversations/${conversationId}/messages`), {
         method: 'POST',
         headers: { ...authHeader(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ userMessage, assistantMessage }),
       })
       if (!res.ok) return null
-      const data = await res.json()
+      const data = await parseJsonResponse(res)
 
       // Update local active conversation messages
       setActiveConversation((prev) => {

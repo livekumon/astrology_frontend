@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from '../constants/systems'
 import { getUiLanguage } from '../i18n/translations'
+import { apiUrl, parseJsonResponse } from '../api/config'
 
 const AuthContext = createContext(null)
 
@@ -26,10 +27,10 @@ export function AuthProvider({ children }) {
       setLoading(false)
       return
     }
-    fetch('/api/auth/me', {
+    fetch(apiUrl('/auth/me'), {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((r) => (r.ok ? r.json() : null))
+      .then(async (r) => (r.ok ? parseJsonResponse(r) : null))
       .then((data) => {
         if (data?.user) setUser(data.user)
         else {
@@ -45,12 +46,12 @@ export function AuthProvider({ children }) {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const login = useCallback(async (email, password) => {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(apiUrl('/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     })
-    const data = await res.json()
+    const data = await parseJsonResponse(res)
     if (!res.ok) throw new Error(data.message || 'Login failed')
     localStorage.setItem(TOKEN_KEY, data.token)
     setToken(data.token)
@@ -59,7 +60,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   const register = useCallback(async (name, email, password) => {
-    const res = await fetch('/api/auth/register', {
+    const res = await fetch(apiUrl('/auth/register'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -69,7 +70,7 @@ export function AuthProvider({ children }) {
         language: readRegisterLanguage(),
       }),
     })
-    const data = await res.json()
+    const data = await parseJsonResponse(res)
     if (!res.ok) throw new Error(data.message || 'Registration failed')
     localStorage.setItem(TOKEN_KEY, data.token)
     setToken(data.token)
