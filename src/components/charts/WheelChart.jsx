@@ -1,5 +1,5 @@
 import { useLanguage } from '../../hooks/useLanguage'
-import { getWheelPlanetSymbols, getWheelSignLabels } from '../../i18n/chartLocale'
+import { getWheelSignLabels } from '../../i18n/chartLocale'
 
 const CX = 100
 const CY = 100
@@ -7,15 +7,6 @@ const WEDGE_RADIUS = 88
 const SIGN_RADIUS = 79
 const PLANET_RADIUS = 51
 const INNER_RING_RADIUS = 40
-
-// Planets sit in their own wedge slot, offset from sign labels (slot 0.5).
-const PLANET_PLACEMENTS = [
-  { segment: 1, slot: 0.28 },
-  { segment: 6, slot: 0.72 },
-  { segment: 9, slot: 0.28 },
-  { segment: 4, slot: 0.72 },
-  { segment: 11, slot: 0.28 },
-]
 
 function polarToXY(segment, slot, radius) {
   const angle = ((segment + slot) / 12) * Math.PI * 2 - Math.PI / 2
@@ -25,11 +16,23 @@ function polarToXY(segment, slot, radius) {
   }
 }
 
-export default function WheelChart({ title, subtitle }) {
+function resolvePlanetLabel(code, copy) {
+  return copy.planetAbbr?.[code] || code
+}
+
+export default function WheelChart({ title, subtitle, wheelPlanets = null, emptyHint = null }) {
   const { t, copy } = useLanguage()
   const signLabels = getWheelSignLabels(copy)
-  const planets = getWheelPlanetSymbols(copy)
   const useNativeScript = signLabels.some((label) => [...label].some((ch) => (ch.codePointAt(0) ?? 0) > 127))
+
+  const placements = Array.isArray(wheelPlanets)
+    ? wheelPlanets.map((planet, index) => ({
+        code: planet.code,
+        label: resolvePlanetLabel(planet.code, copy),
+        segment: planet.segment ?? 0,
+        slot: planet.slot ?? 0.28 + (index % 4) * 0.11,
+      }))
+    : []
 
   return (
     <div className="wheel-chart-wrap">
@@ -78,13 +81,12 @@ export default function WheelChart({ title, subtitle }) {
           strokeWidth="0.75"
         />
 
-        {planets.map((planet, index) => {
-          const placement = PLANET_PLACEMENTS[index]
-          const { x: px, y: py } = polarToXY(placement.segment, placement.slot, PLANET_RADIUS)
+        {placements.map((planet) => {
+          const { x: px, y: py } = polarToXY(planet.segment, planet.slot, PLANET_RADIUS)
 
           return (
             <text
-              key={planet.code}
+              key={`${planet.code}-${planet.segment}-${planet.slot}`}
               x={px}
               y={py}
               textAnchor="middle"
@@ -113,6 +115,9 @@ export default function WheelChart({ title, subtitle }) {
           {t('wheelCenter')}
         </text>
       </svg>
+      {!placements.length && emptyHint && (
+        <div className="wheel-empty-hint">{emptyHint}</div>
+      )}
     </div>
   )
 }

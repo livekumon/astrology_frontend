@@ -4,17 +4,52 @@ import SouthIndianChart from './charts/SouthIndianChart'
 import WheelChart from './charts/WheelChart'
 import DashaTimeline from './charts/DashaTimeline'
 
-function ChartDisplay({ activeTab, chartData, copy }) {
+function formatDivisionSubtitle(base, division, ts) {
+  if (!division?.ascSign) return base
+  return `${base} · ↑ ${ts(division.ascSign)} · ☉ ${ts(division.sunSign)} · ☽ ${ts(division.moonSign)}`
+}
+
+function formatTransitSubtitle(base, transit, ts, t) {
+  if (!transit) return base
+  const parts = [base]
+  if (transit.referenceDate) {
+    parts.push(`${t('transitAsOf') || 'As of'} ${transit.referenceDate}`)
+  }
+  if (transit.summary) {
+    parts.push(transit.summary)
+  }
+  return parts.join(' · ')
+}
+
+function ChartDisplay({ activeTab, chartData, copy, ts, t }) {
   if (!chartData) return null
   switch (activeTab) {
     case 'rasi':
       return <SouthIndianChart planets={chartData.planets} />
     case 'navamsa':
-      return <WheelChart title={copy.wheelCharts.navamsaTitle} subtitle={copy.wheelCharts.navamsaSub} />
+      return (
+        <WheelChart
+          title={copy.wheelCharts.navamsaTitle}
+          subtitle={formatDivisionSubtitle(copy.wheelCharts.navamsaSub, chartData.navamsa, ts)}
+          wheelPlanets={chartData.navamsa?.wheelPlanets}
+        />
+      )
     case 'dasamsa':
-      return <WheelChart title={copy.wheelCharts.dasamsaTitle} subtitle={copy.wheelCharts.dasamsaSub} />
+      return (
+        <WheelChart
+          title={copy.wheelCharts.dasamsaTitle}
+          subtitle={formatDivisionSubtitle(copy.wheelCharts.dasamsaSub, chartData.dasamsa, ts)}
+          wheelPlanets={chartData.dasamsa?.wheelPlanets}
+        />
+      )
     case 'transit':
-      return <WheelChart title={copy.wheelCharts.transitTitle} subtitle={copy.wheelCharts.transitSub} />
+      return (
+        <WheelChart
+          title={copy.wheelCharts.transitTitle}
+          subtitle={formatTransitSubtitle(copy.wheelCharts.transitSub, chartData.transit, ts, t)}
+          wheelPlanets={chartData.transit?.wheelPlanets}
+        />
+      )
     case 'dasha':
       return <DashaTimeline dashas={chartData.dashas} />
     default:
@@ -23,7 +58,7 @@ function ChartDisplay({ activeTab, chartData, copy }) {
 }
 
 export default function ChartModal({ open, tabId, chartData, onClose }) {
-  const { copy, t } = useLanguage()
+  const { copy, t, ts } = useLanguage()
 
   useEffect(() => {
     if (!open) return undefined
@@ -51,7 +86,7 @@ export default function ChartModal({ open, tabId, chartData, onClose }) {
           </button>
         </div>
         <div className="chart-modal-body">
-          <ChartDisplay activeTab={tabId} chartData={chartData} copy={copy} />
+          <ChartDisplay activeTab={tabId} chartData={chartData} copy={copy} ts={ts} t={t} />
         </div>
       </div>
     </div>

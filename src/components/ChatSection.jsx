@@ -34,6 +34,9 @@ function buildChartContext(chartData, language) {
     ascSign: chartData.ascSign,
     planets: chartData.planets,
     dashas: chartData.dashas,
+    navamsa: chartData.navamsa,
+    dasamsa: chartData.dasamsa,
+    transit: chartData.transit,
     welcomeMessage: chartData.welcomeMessage,
     language,
   }
