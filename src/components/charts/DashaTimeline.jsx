@@ -1,4 +1,4 @@
-import { useLanguage } from '../../i18n/LanguageContext'
+import { useLanguage } from '../../hooks/useLanguage'
 import { getPlanetName } from '../../i18n/chartLocale'
 
 export default function DashaTimeline({ dashas = [] }) {

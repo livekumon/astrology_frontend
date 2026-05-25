@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useLanguage } from '../i18n/LanguageContext'
+import { useLanguage } from '../hooks/useLanguage'
 import SouthIndianChart from './charts/SouthIndianChart'
 import WheelChart from './charts/WheelChart'
 import DashaTimeline from './charts/DashaTimeline'

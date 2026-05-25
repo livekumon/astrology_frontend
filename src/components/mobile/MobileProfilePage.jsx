@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { LANGUAGES } from '../../constants/systems'
-import { useAuth } from '../../contexts/AuthContext'
-import { useLanguage } from '../../i18n/LanguageContext'
+import { useAuth } from '../../hooks/useAuth'
+import { useLanguage } from '../../hooks/useLanguage'
 import AuthForms from '../auth/AuthForms'
 
 export default function MobileProfilePage({ chartCast, onNewChart }) {

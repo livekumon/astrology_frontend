@@ -1,5 +1,5 @@
 import { ASTROLOGY_SYSTEMS } from '../constants/systems'
-import { useLanguage } from '../i18n/LanguageContext'
+import { useLanguage } from '../hooks/useLanguage'
 import GenderField from './GenderField'
 
 export default function BirthForm({

@@ -1,10 +1,9 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from '../constants/systems'
 import { getUiLanguage } from '../i18n/translations'
 import { apiUrl, parseJsonResponse } from '../api/config'
 import { collectDeviceProfile } from '../utils/deviceProfile'
-
-const AuthContext = createContext(null)
+import { AuthContext } from './authContext'
 
 const TOKEN_KEY = 'jyotish_token'
 
@@ -45,18 +44,15 @@ async function syncDeviceProfile(token) {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY))
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem(TOKEN_KEY)))
 
   const patchUser = useCallback((updates) => {
     setUser((prev) => (prev ? { ...prev, ...updates } : prev))
   }, [])
 
-  // Verify stored token on mount
   useEffect(() => {
-    if (!token) {
-      setLoading(false)
-      return
-    }
+    if (!token) return
+
     fetch(apiUrl('/auth/me'), {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -132,10 +128,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
-  return ctx
 }

@@ -1,4 +1,4 @@
-import { useAuth } from '../../contexts/AuthContext'
+import { useAuth } from '../../hooks/useAuth'
 import { MobileNavIcon } from './MobileNavIcons'
 
 const NAV_ITEMS_CREATE = [

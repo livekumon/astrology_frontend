@@ -1,4 +1,4 @@
-import { useLanguage } from '../../i18n/LanguageContext'
+import { useLanguage } from '../../hooks/useLanguage'
 import { getWheelPlanetSymbols, getWheelSignLabels } from '../../i18n/chartLocale'
 
 const CX = 100
@@ -29,7 +29,7 @@ export default function WheelChart({ title, subtitle }) {
   const { t, copy } = useLanguage()
   const signLabels = getWheelSignLabels(copy)
   const planets = getWheelPlanetSymbols(copy)
-  const useNativeScript = signLabels.some((label) => /[^\u0000-\u007F♈-♓]/.test(label))
+  const useNativeScript = signLabels.some((label) => [...label].some((ch) => (ch.codePointAt(0) ?? 0) > 127))
 
   return (
     <div className="wheel-chart-wrap">

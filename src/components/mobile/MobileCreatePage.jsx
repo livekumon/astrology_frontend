@@ -1,5 +1,5 @@
 import BirthForm from '../BirthForm'
-import { useLanguage } from '../../i18n/LanguageContext'
+import { useLanguage } from '../../hooks/useLanguage'
 
 export default function MobileCreatePage({
   selectedSystem,

@@ -25,21 +25,18 @@ function ensureGsiInitialized(clientId) {
 
 export default function GoogleSignInButton({ onSuccess, onError, disabled = false, compact = false }) {
   const containerRef = useRef(null)
-  const onSuccessRef = useRef(onSuccess)
-  const onErrorRef = useRef(onError)
-  onSuccessRef.current = onSuccess
-  onErrorRef.current = onError
-
   const { clientId, scriptLoadedSuccessfully } = useGoogleOAuth()
 
   useEffect(() => {
     if (!scriptLoadedSuccessfully || !containerRef.current || disabled || !GOOGLE_CLIENT_ID) return
 
+    const container = containerRef.current
+
     const handleCredential = (credentialResponse) => {
       if (credentialResponse?.credential) {
-        onSuccessRef.current(credentialResponse.credential)
+        onSuccess(credentialResponse.credential)
       } else {
-        onErrorRef.current?.()
+        onError?.()
       }
     }
 
@@ -57,17 +54,15 @@ export default function GoogleSignInButton({ onSuccess, onError, disabled = fals
       },
     }
 
-    window.google.accounts.id.renderButton(containerRef.current, buttonOptions)
+    window.google.accounts.id.renderButton(container, buttonOptions)
 
     return () => {
       if (activeCredentialHandler === handleCredential) {
         activeCredentialHandler = null
       }
-      if (containerRef.current) {
-        containerRef.current.innerHTML = ''
-      }
+      container.innerHTML = ''
     }
-  }, [clientId, scriptLoadedSuccessfully, disabled, compact])
+  }, [clientId, scriptLoadedSuccessfully, disabled, compact, onSuccess, onError])
 
   if (!GOOGLE_CLIENT_ID) return null
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { LANGUAGES } from '../constants/systems'
-import { useLanguage } from '../i18n/LanguageContext'
+import { useLanguage } from '../hooks/useLanguage'
 
 export default function Nav({ onMenuClick }) {
   const { language, setLanguage, t } = useLanguage()

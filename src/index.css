@@ -1668,6 +1668,7 @@ h1 em{
   --mobile-nav-height:var(--mobile-nav-height-signed-in);
 }
 
+.mobile-main{
   flex:1;min-height:0;width:100%;display:flex;flex-direction:column;overflow:hidden;
 }
 

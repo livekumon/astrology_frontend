@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { useConversations } from '../contexts/ConversationContext'
-import { useLanguage } from '../i18n/LanguageContext'
+import { useCallback, useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
+import { useConversations } from '../hooks/useConversations'
+import { useLanguage } from '../hooks/useLanguage'
 import AuthForms from './auth/AuthForms'
 import ConversationList from './conversations/ConversationList'
 
@@ -26,10 +26,6 @@ export default function Sidebar({
   } = useConversations()
 
   const [showAuth, setShowAuth] = useState(false)
-
-  useEffect(() => {
-    if (user) setShowAuth(false)
-  }, [user])
 
   const handleSelect = useCallback(async (conv) => {
     const full = await loadConversation(conv._id)
@@ -90,7 +86,7 @@ export default function Sidebar({
                 <button type="button" className="sidebar-signin-btn" onClick={() => setShowAuth((v) => !v)}>
                   {showAuth ? t('cancelRename') : t('signInOrRegister')}
                 </button>
-                {showAuth && <AuthForms onClose={() => setShowAuth(false)} t={t} />}
+                {showAuth && !user && <AuthForms onClose={() => setShowAuth(false)} t={t} />}
               </div>
             ) : (
               <p className="sidebar-guest-text">{t('mobileUseChatTab')}</p>

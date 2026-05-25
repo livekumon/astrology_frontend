@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { LANGUAGES } from '../constants/systems'
 import { getChartViewsForSystem } from '../constants/chartViews'
-import { useLanguage } from '../i18n/LanguageContext'
+import { useLanguage } from '../hooks/useLanguage'
 
 export default function MainHeader({
   onMenuClick,

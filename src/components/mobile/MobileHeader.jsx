@@ -1,4 +1,4 @@
-import { useLanguage } from '../../i18n/LanguageContext'
+import { useLanguage } from '../../hooks/useLanguage'
 
 const TAB_TITLE_KEYS = {
   home: 'navHome',

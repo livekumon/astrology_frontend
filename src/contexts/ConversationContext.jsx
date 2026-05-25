@@ -1,36 +1,35 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { apiUrl, parseJsonResponse } from '../api/config'
-import { useAuth } from './AuthContext'
+import { useAuth } from '../hooks/useAuth'
+import { ConversationContext } from './conversationContext'
 
-const ConversationContext = createContext(null)
+const emptyConversationValue = {
+  conversations: [],
+  activeConversation: null,
+  loadingList: false,
+  setActiveConversation: () => {},
+  loadList: async () => {},
+  createConversation: async () => null,
+  loadConversation: async () => null,
+  renameConversation: async () => false,
+  deleteConversation: async () => {},
+  appendMessages: async () => null,
+}
 
 function sameId(a, b) {
   if (a == null || b == null) return false
   return String(a) === String(b)
 }
 
-export function ConversationProvider({ children }) {
-  const { user, token } = useAuth()
+function ConversationProviderInner({ token, children }) {
   const [conversations, setConversations] = useState([])
   const [activeConversation, setActiveConversation] = useState(null)
   const [loadingList, setLoadingList] = useState(false)
-  const activeRef = useRef(null)
-  activeRef.current = activeConversation
 
   const authHeader = useCallback(
     () => ({ Authorization: `Bearer ${token}` }),
     [token],
   )
-
-  // Load list when user logs in
-  useEffect(() => {
-    if (!user) {
-      setConversations([])
-      setActiveConversation(null)
-      return
-    }
-    loadList()
-  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadList = useCallback(async () => {
     if (!token) return
@@ -46,6 +45,19 @@ export function ConversationProvider({ children }) {
       setLoadingList(false)
     }
   }, [token, authHeader])
+
+  useEffect(() => {
+    let cancelled = false
+
+    ;(async () => {
+      await loadList()
+      if (cancelled) return
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [loadList])
 
   const createConversation = useCallback(
     async (chartData, language, name) => {
@@ -97,11 +109,14 @@ export function ConversationProvider({ children }) {
         prev.map((c) => (sameId(c._id, id) ? { ...c, ...data.conversation } : c)),
       )
 
-      if (sameId(activeRef.current?._id, id)) {
-        setActiveConversation((prev) =>
-          prev ? { ...prev, ...data.conversation, messages: prev.messages ?? data.conversation.messages } : data.conversation,
-        )
-      }
+      setActiveConversation((prev) => {
+        if (!prev || !sameId(prev._id, id)) return prev
+        return {
+          ...prev,
+          ...data.conversation,
+          messages: prev.messages ?? data.conversation.messages,
+        }
+      })
       return true
     },
     [token, authHeader],
@@ -116,7 +131,7 @@ export function ConversationProvider({ children }) {
       })
       if (!res.ok) return
       setConversations((prev) => prev.filter((c) => !sameId(c._id, id)))
-      if (sameId(activeRef.current?._id, id)) setActiveConversation(null)
+      setActiveConversation((prev) => (sameId(prev?._id, id) ? null : prev))
     },
     [token, authHeader],
   )
@@ -132,7 +147,6 @@ export function ConversationProvider({ children }) {
       if (!res.ok) return null
       const data = await parseJsonResponse(res)
 
-      // Update local active conversation messages
       setActiveConversation((prev) => {
         if (!prev || !sameId(prev._id, conversationId)) return prev
         return {
@@ -142,16 +156,25 @@ export function ConversationProvider({ children }) {
           messages: [
             ...(prev.messages || []),
             { role: 'user', content: userMessage, timestamp: new Date() },
-            { role: 'assistant', summary: assistantMessage.summary, clearExplanation: assistantMessage.clearExplanation || '', detailedExplanation: assistantMessage.detailedExplanation, timestamp: new Date() },
+            {
+              role: 'assistant',
+              summary: assistantMessage.summary,
+              clearExplanation: assistantMessage.clearExplanation || '',
+              detailedExplanation: assistantMessage.detailedExplanation,
+              timestamp: new Date(),
+            },
           ],
         }
       })
 
-      // Bump conversation to top of list
       setConversations((prev) => {
         const idx = prev.findIndex((c) => sameId(c._id, conversationId))
         if (idx < 0) return prev
-        const updated = { ...prev[idx], messageCount: (prev[idx].messageCount || 0) + 1, updatedAt: new Date() }
+        const updated = {
+          ...prev[idx],
+          messageCount: (prev[idx].messageCount || 0) + 1,
+          updatedAt: new Date(),
+        }
         return [updated, ...prev.filter((_, i) => i !== idx)]
       })
 
@@ -180,8 +203,20 @@ export function ConversationProvider({ children }) {
   )
 }
 
-export function useConversations() {
-  const ctx = useContext(ConversationContext)
-  if (!ctx) throw new Error('useConversations must be used within ConversationProvider')
-  return ctx
+export function ConversationProvider({ children }) {
+  const { user, token } = useAuth()
+
+  if (!user || !token) {
+    return (
+      <ConversationContext.Provider value={emptyConversationValue}>
+        {children}
+      </ConversationContext.Provider>
+    )
+  }
+
+  return (
+    <ConversationProviderInner key={String(user._id)} token={token}>
+      {children}
+    </ConversationProviderInner>
+  )
 }

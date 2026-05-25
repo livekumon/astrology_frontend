@@ -1,13 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { getSystemLabel, getSystemMeta } from '../../constants/systems'
 
 function ConvItem({ conv, isActive, onSelect, onRename, onDelete, t, copy }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(conv.name)
-  const inputRef = useRef(null)
-
-  useEffect(() => { setDraft(conv.name) }, [conv.name])
-  useEffect(() => { if (editing) inputRef.current?.focus() }, [editing])
 
   function startEditing(e) {
     e?.stopPropagation()
@@ -35,9 +31,9 @@ function ConvItem({ conv, isActive, onSelect, onRename, onDelete, t, copy }) {
       {editing ? (
         <div className="conv-edit-row" onClick={(e) => e.stopPropagation()}>
           <input
-            ref={inputRef}
             className="conv-rename-input"
             value={draft}
+            autoFocus
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') commitRename(e)

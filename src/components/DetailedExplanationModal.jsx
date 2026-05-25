@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useLanguage } from '../i18n/LanguageContext'
+import { useLanguage } from '../hooks/useLanguage'
 
 function renderInline(text) {
   const parts = String(text).split(/(<em>.*?<\/em>)/g)

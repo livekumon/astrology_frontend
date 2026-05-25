@@ -120,10 +120,26 @@ export function useMicrophoneDevices() {
   )
 
   useEffect(() => {
-    refreshDevices()
+    let cancelled = false
+
+    ;(async () => {
+      const microphones = await refreshDevices()
+      if (cancelled) return
+
+      if (
+        selectedDeviceId !== DEFAULT_MIC_ID &&
+        microphones.length > 0 &&
+        !microphones.some((device) => device.deviceId === selectedDeviceId)
+      ) {
+        setSelectedDeviceId(DEFAULT_MIC_ID)
+        writeStoredDeviceId(DEFAULT_MIC_ID)
+      }
+    })()
 
     if (!navigator.mediaDevices?.addEventListener) {
-      return undefined
+      return () => {
+        cancelled = true
+      }
     }
 
     const handleDeviceChange = async () => {
@@ -139,7 +155,10 @@ export function useMicrophoneDevices() {
     }
 
     navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange)
-    return () => navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange)
+    return () => {
+      cancelled = true
+      navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange)
+    }
   }, [refreshDevices, selectedDeviceId])
 
   useEffect(() => releaseStream, [releaseStream])

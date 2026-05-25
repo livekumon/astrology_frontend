@@ -1,10 +1,9 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { updateUserLanguage } from '../api/client'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import { DEFAULT_LANGUAGE, LANGUAGES, LANGUAGE_STORAGE_KEY } from '../constants/systems'
 import { getUiLanguage, translate, translateSign, translations } from './translations'
-
-const LanguageContext = createContext(null)
+import { LanguageContext } from './languageContext'
 
 function readStoredLanguage() {
   if (typeof window === 'undefined') return DEFAULT_LANGUAGE
@@ -18,20 +17,15 @@ function persistLocalLanguage(code) {
 
 export function LanguageProvider({ children }) {
   const { user, token, patchUser } = useAuth()
-  const [language, setLanguageState] = useState(readStoredLanguage)
+  const [guestLanguage, setGuestLanguage] = useState(readStoredLanguage)
 
-  // Apply saved profile language whenever the logged-in user changes
-  useEffect(() => {
-    if (user?.language) {
-      const profileLanguage = getUiLanguage(user.language)
-      setLanguageState(profileLanguage)
-      persistLocalLanguage(profileLanguage)
-    }
-  }, [user?._id, user?.language])
+  const language = user?.language
+    ? getUiLanguage(user.language)
+    : getUiLanguage(guestLanguage)
 
   const setLanguage = useCallback(async (code) => {
     const next = getUiLanguage(code)
-    setLanguageState(next)
+    setGuestLanguage(next)
     persistLocalLanguage(next)
 
     if (token && user) {
@@ -60,12 +54,4 @@ export function LanguageProvider({ children }) {
   }, [language, setLanguage])
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
-}
-
-export function useLanguage() {
-  const context = useContext(LanguageContext)
-  if (!context) {
-    throw new Error('useLanguage must be used within LanguageProvider')
-  }
-  return context
 }

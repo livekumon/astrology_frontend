@@ -14,7 +14,7 @@ const WESTERN_SYSTEMS = new Set([
 
 /** Chart views available per tradition (only views with data in chartData). */
 export function getChartViewsForSystem(systemId, chartData = null) {
-  let views = ['rasi']
+  let views
 
   if (VEDIC_SYSTEMS.has(systemId)) {
     views = ['rasi', 'navamsa', 'dasamsa', 'transit', 'dasha']

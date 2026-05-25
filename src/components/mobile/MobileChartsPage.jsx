@@ -1,5 +1,5 @@
 import { getChartViewsForSystem } from '../../constants/chartViews'
-import { useLanguage } from '../../i18n/LanguageContext'
+import { useLanguage } from '../../hooks/useLanguage'
 
 export default function MobileChartsPage({ chartData, onChartViewClick }) {
   const { t, ts, copy } = useLanguage()

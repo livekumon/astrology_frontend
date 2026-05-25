@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { QUICK_QUESTION_KEYS } from '../constants/systems'
 import { sendChatMessage } from '../api/client'
-import { useLanguage } from '../i18n/LanguageContext'
-import { useAuth } from '../contexts/AuthContext'
-import { useConversations } from '../contexts/ConversationContext'
+import { useLanguage } from '../hooks/useLanguage'
+import { useAuth } from '../hooks/useAuth'
+import { useConversations } from '../hooks/useConversations'
 import { useVoiceInput } from '../hooks/useVoiceInput'
 import { useMicrophoneDevices } from '../hooks/useMicrophoneDevices'
 import DetailedExplanationModal from './DetailedExplanationModal'
@@ -56,40 +56,38 @@ function savedMessageToUi(msg, index, all) {
   }
 }
 
-function ConvNameBar({ conversation, onRename, t }) {
+function buildInitialMessages(conversation, chartData) {
+  if (conversation?.messages?.length) {
+    return conversation.messages.map((msg, index, all) => savedMessageToUi(msg, index, all))
+  }
+  if (chartData?.welcomeMessage) {
+    return [{ role: 'assistant', text: chartData.welcomeMessage }]
+  }
+  return []
+}
+
+function ConvNameBarEditor({ conversation, onRename, t }) {
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(conversation?.name || '')
-  const inputRef = useRef(null)
-
-  useEffect(() => {
-    setDraft(conversation?.name || '')
-    setEditing(false)
-  }, [conversation?._id, conversation?.name])
-
-  useEffect(() => {
-    if (editing) inputRef.current?.focus()
-  }, [editing])
+  const [draft, setDraft] = useState(conversation.name || '')
 
   async function commit() {
     const next = draft.trim()
     if (!next) {
-      setDraft(conversation?.name || '')
+      setDraft(conversation.name || '')
       setEditing(false)
       return
     }
-    if (next !== conversation?.name) await onRename(conversation._id, next)
+    if (next !== conversation.name) await onRename(conversation._id, next)
     setEditing(false)
   }
-
-  if (!conversation) return null
 
   return (
     <div className="chat-header-bar">
       {editing ? (
         <input
-          ref={inputRef}
           className="chat-header-title-input"
           value={draft}
+          autoFocus
           placeholder={t('conversationNamePlaceholder')}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={commit}
@@ -110,7 +108,19 @@ function ConvNameBar({ conversation, onRename, t }) {
   )
 }
 
-export default function ChatSection({
+function ConvNameBar({ conversation, onRename, t }) {
+  if (!conversation) return null
+  return (
+    <ConvNameBarEditor
+      key={String(conversation._id)}
+      conversation={conversation}
+      onRename={onRename}
+      t={t}
+    />
+  )
+}
+
+function ChatSectionInner({
   chartData,
   visible,
   conversation: externalConversation,
@@ -123,29 +133,13 @@ export default function ChatSection({
 
   const conversation = externalConversation || activeConversation
 
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState(() => buildInitialMessages(conversation, chartData))
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [activeDetail, setActiveDetail] = useState(null)
   const [voiceError, setVoiceError] = useState('')
   const messagesRef = useRef(null)
   const textareaRef = useRef(null)
-  const inputRef = useRef('')
-  inputRef.current = input
-
-  useEffect(() => {
-    if (conversation?.messages?.length) {
-      setMessages(conversation.messages.map((msg, index, all) => savedMessageToUi(msg, index, all)))
-    } else if (chartData?.welcomeMessage) {
-      setMessages([{ role: 'assistant', text: chartData.welcomeMessage }])
-    }
-  }, [conversation?._id]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!conversation && chartData?.welcomeMessage) {
-      setMessages([{ role: 'assistant', text: chartData.welcomeMessage }])
-    }
-  }, [chartData]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (messagesRef.current) {
@@ -169,7 +163,7 @@ export default function ChatSection({
 
   const { isSupported: voiceSupported, isListening, isProcessing, toggleListening } = useVoiceInput({
     language,
-    getBaseText: () => inputRef.current,
+    getBaseText: () => input,
     getMicStream,
     openSelectedMic,
     releaseMicStream: releaseStream,
@@ -387,4 +381,10 @@ export default function ChatSection({
       </div>
     </>
   )
+}
+
+export default function ChatSection(props) {
+  const conversation = props.conversation
+  const resetKey = conversation?._id ?? props.chartData?.welcomeMessage ?? 'empty'
+  return <ChatSectionInner key={resetKey} {...props} />
 }

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSidebarState } from './hooks/useSidebarState'
 import { generateChart } from './api/client'
-import { useLanguage } from './i18n/LanguageContext'
-import { useAuth } from './contexts/AuthContext'
-import { useConversations } from './contexts/ConversationContext'
+import { useLanguage } from './hooks/useLanguage'
+import { useAuth } from './hooks/useAuth'
+import { useConversations } from './hooks/useConversations'
 import Starfield from './components/Starfield'
 import BackgroundEffects from './components/BackgroundEffects'
 import MainHeader from './components/MainHeader'
@@ -42,15 +42,12 @@ export default function App() {
   const chartCast = !!chartData
   const isMobile = !isDesktop
 
-  useEffect(() => {
-    if (!isMobile) return
-    if (!chartCast && (mobileTab === 'chat' || mobileTab === 'charts')) {
-      setMobileTab('home')
-    }
-    if (chartCast && mobileTab === 'home') {
-      setMobileTab('chat')
-    }
-  }, [chartCast, isMobile, mobileTab])
+  const resolvedMobileTab = (() => {
+    if (!isMobile) return mobileTab
+    if (!chartCast && (mobileTab === 'chat' || mobileTab === 'charts')) return 'home'
+    if (chartCast && mobileTab === 'home') return 'chat'
+    return mobileTab
+  })()
 
   useEffect(() => {
     if (!user || !chartData || activeConversation || guestConversationCreatedRef.current) return
@@ -160,10 +157,10 @@ export default function App() {
   function renderMobileContent() {
     return (
       <>
-        <MobileHeader activeTab={mobileTab} chartCast={chartCast} chartData={chartData} />
+        <MobileHeader activeTab={resolvedMobileTab} chartCast={chartCast} chartData={chartData} />
 
         <div className="mobile-main">
-          {mobileTab === 'home' && !chartCast && (
+          {resolvedMobileTab === 'home' && !chartCast && (
             <MobileCreatePage
               selectedSystem={selectedSystem}
               onSystemChange={setSelectedSystem}
@@ -175,7 +172,7 @@ export default function App() {
             />
           )}
 
-          {mobileTab === 'chat' && chartCast && (
+          {resolvedMobileTab === 'chat' && chartCast && (
             <div className="mobile-chat-workspace" ref={chatRef}>
               <ChatSection
                 chartData={chartData}
@@ -186,28 +183,28 @@ export default function App() {
             </div>
           )}
 
-          {mobileTab === 'charts' && chartCast && (
+          {resolvedMobileTab === 'charts' && chartCast && (
             <MobileChartsPage
               chartData={chartData}
               onChartViewClick={handleChartViewClick}
             />
           )}
 
-          {mobileTab === 'history' && (
+          {resolvedMobileTab === 'history' && (
             <MobileHistoryPage
               onSelectConversation={handleSelectConversationMobile}
               onNavigateChat={() => setMobileTab('chat')}
             />
           )}
 
-          {mobileTab === 'account' && (
+          {resolvedMobileTab === 'account' && (
             <MobileProfilePage chartCast={chartCast} onNewChart={handleEditChart} />
           )}
         </div>
 
         <MobileBottomNav
           chartCast={chartCast}
-          activeTab={mobileTab}
+          activeTab={resolvedMobileTab}
           onChange={setMobileTab}
           t={t}
         />

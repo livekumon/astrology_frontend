@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
-import { useConversations } from '../../contexts/ConversationContext'
-import { useLanguage } from '../../i18n/LanguageContext'
+import { useAuth } from '../../hooks/useAuth'
+import { useConversations } from '../../hooks/useConversations'
+import { useLanguage } from '../../hooks/useLanguage'
 import ConversationList from '../conversations/ConversationList'
 import AuthForms from '../auth/AuthForms'
 
