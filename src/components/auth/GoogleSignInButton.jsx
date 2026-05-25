@@ -1,29 +1,81 @@
-import { GoogleLogin } from '@react-oauth/google'
+import { useEffect, useRef } from 'react'
+import { useGoogleOAuth } from '@react-oauth/google'
+import { GOOGLE_CLIENT_ID } from './googleAuthConfig'
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || ''
+const BUTTON_HEIGHT = { large: 40, medium: 32, small: 20 }
 
-export function isGoogleSignInEnabled() {
-  return Boolean(GOOGLE_CLIENT_ID)
+let gsiInitialized = false
+let activeCredentialHandler = null
+
+function ensureGsiInitialized(clientId) {
+  if (!window.google?.accounts?.id) return false
+
+  if (!gsiInitialized) {
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: (credentialResponse) => {
+        activeCredentialHandler?.(credentialResponse)
+      },
+    })
+    gsiInitialized = true
+  }
+
+  return true
 }
 
-export default function GoogleSignInButton({ onSuccess, onError, disabled = false }) {
+export default function GoogleSignInButton({ onSuccess, onError, disabled = false, compact = false }) {
+  const containerRef = useRef(null)
+  const onSuccessRef = useRef(onSuccess)
+  const onErrorRef = useRef(onError)
+  onSuccessRef.current = onSuccess
+  onErrorRef.current = onError
+
+  const { clientId, scriptLoadedSuccessfully } = useGoogleOAuth()
+
+  useEffect(() => {
+    if (!scriptLoadedSuccessfully || !containerRef.current || disabled || !GOOGLE_CLIENT_ID) return
+
+    const handleCredential = (credentialResponse) => {
+      if (credentialResponse?.credential) {
+        onSuccessRef.current(credentialResponse.credential)
+      } else {
+        onErrorRef.current?.()
+      }
+    }
+
+    if (!ensureGsiInitialized(clientId)) return
+
+    const buttonOptions = {
+      type: 'standard',
+      theme: 'filled_black',
+      size: 'large',
+      text: 'continue_with',
+      shape: 'rectangular',
+      width: compact ? '220' : '320',
+      click_listener: () => {
+        activeCredentialHandler = handleCredential
+      },
+    }
+
+    window.google.accounts.id.renderButton(containerRef.current, buttonOptions)
+
+    return () => {
+      if (activeCredentialHandler === handleCredential) {
+        activeCredentialHandler = null
+      }
+      if (containerRef.current) {
+        containerRef.current.innerHTML = ''
+      }
+    }
+  }, [clientId, scriptLoadedSuccessfully, disabled, compact])
+
   if (!GOOGLE_CLIENT_ID) return null
 
   return (
-    <div className={`auth-google-btn-wrap${disabled ? ' auth-google-disabled' : ''}`}>
-      <GoogleLogin
-        onSuccess={(response) => {
-          if (response.credential) onSuccess(response.credential)
-          else onError?.()
-        }}
-        onError={() => onError?.()}
-        theme="filled_black"
-        size="large"
-        width="320"
-        text="continue_with"
-        shape="rectangular"
-        useOneTap={false}
-      />
+    <div
+      className={`auth-google-btn-wrap${disabled ? ' auth-google-disabled' : ''}${compact ? ' auth-google-btn-wrap-compact' : ''}`}
+    >
+      <div ref={containerRef} style={{ height: BUTTON_HEIGHT.large }} />
     </div>
   )
 }

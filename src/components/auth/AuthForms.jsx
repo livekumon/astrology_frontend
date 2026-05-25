@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import GoogleSignInButton, { isGoogleSignInEnabled } from './GoogleSignInButton'
+import GoogleSignInButton from './GoogleSignInButton'
+import { isGoogleSignInEnabled } from './googleAuthConfig'
 
 export default function AuthForms({ onClose, t, className = '' }) {
   const { login, register, loginWithGoogle } = useAuth()
@@ -45,6 +46,7 @@ export default function AuthForms({ onClose, t, className = '' }) {
       {googleEnabled && (
         <>
           <GoogleSignInButton
+            compact={className.includes('mobile-auth-forms') || className.includes('chat-auth-gate')}
             disabled={busy}
             onSuccess={handleGoogleSuccess}
             onError={() => setError(t('googleSignInFailed'))}
@@ -103,6 +105,7 @@ export default function AuthForms({ onClose, t, className = '' }) {
           required
           minLength={6}
           disabled={busy}
+          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
         />
         {error && <p className="auth-error">{error}</p>}
         <button className="auth-submit" type="submit" disabled={busy}>

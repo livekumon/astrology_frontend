@@ -1,6 +1,5 @@
 import { GoogleOAuthProvider } from '@react-oauth/google'
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || ''
+import { GOOGLE_CLIENT_ID } from './googleAuthConfig'
 
 export default function GoogleAuthProvider({ children }) {
   if (!GOOGLE_CLIENT_ID) return children
@@ -12,4 +11,4 @@ export default function GoogleAuthProvider({ children }) {
   )
 }
 
-export { GOOGLE_CLIENT_ID }
+export { GOOGLE_CLIENT_ID } from './googleAuthConfig'

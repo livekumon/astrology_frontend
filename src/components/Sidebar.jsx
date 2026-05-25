@@ -8,6 +8,7 @@ import ConversationList from './conversations/ConversationList'
 export default function Sidebar({
   open,
   isDesktop,
+  chartCast = false,
   onClose,
   onToggle,
   onSelectConversation,
@@ -41,6 +42,8 @@ export default function Sidebar({
     if (!isDesktop) onClose?.()
   }
 
+  const showSidebarGuestAuth = !user && !(isDesktop && chartCast)
+
   return (
     <>
       {!isDesktop && open && <div className="sidebar-backdrop" onClick={onClose} aria-hidden="true" />}
@@ -54,6 +57,7 @@ export default function Sidebar({
         aria-hidden={!open}
       >
         <div className="sidebar-inner">
+          <div className="sidebar-scroll">
           <div className="sidebar-header">
             <span className="sidebar-logo">✦ Jyotish</span>
             <button
@@ -80,7 +84,7 @@ export default function Sidebar({
                   <span className="sidebar-user-email">{user.email}</span>
                 </div>
               </div>
-            ) : (
+            ) : showSidebarGuestAuth ? (
               <div className="sidebar-guest">
                 <p className="sidebar-guest-text">{t('guestSidebarHint')}</p>
                 <button type="button" className="sidebar-signin-btn" onClick={() => setShowAuth((v) => !v)}>
@@ -88,6 +92,8 @@ export default function Sidebar({
                 </button>
                 {showAuth && <AuthForms onClose={() => setShowAuth(false)} t={t} />}
               </div>
+            ) : (
+              <p className="sidebar-guest-text">{t('mobileUseChatTab')}</p>
             )}
           </div>
 
@@ -110,6 +116,8 @@ export default function Sidebar({
               />
             </div>
           )}
+
+          </div>
 
           <div className="sidebar-footer">
             {user && (

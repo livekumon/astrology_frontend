@@ -1217,6 +1217,9 @@ h1 em{
 .sidebar-inner{
   display:flex;flex-direction:column;height:100%;width:260px;min-width:260px;
 }
+.sidebar-scroll{
+  flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+}
 .sidebar-desktop{
   position:relative;height:100%;min-height:100vh;align-self:stretch;overflow:hidden;
   transition:width 0.22s ease,min-width 0.22s ease;
@@ -1464,17 +1467,19 @@ h1 em{
 .sidebar-footer{
   padding:0.75rem 1.25rem;border-top:1px solid rgba(200,132,74,0.1);
   flex-shrink:0;display:flex;flex-direction:column;gap:8px;
+  margin-top:auto;
+  background:#0e1420;
 }
 .sidebar-signout-btn{
-  width:100%;padding:9px 12px;border-radius:8px;
+  width:100%;padding:10px 12px;border-radius:8px;
   border:1px solid rgba(196,92,92,0.35);
-  background:rgba(196,92,92,0.08);
-  color:var(--rust);font-size:var(--font-xs);font-weight:600;
+  background:rgba(196,92,92,0.1);
+  color:var(--rust);font-size:var(--font-sm);font-weight:600;
   letter-spacing:0.04em;cursor:pointer;
-  transition:background 0.18s,border-color 0.18s;
+  transition:background 0.18s,border-color 0.18s,color 0.18s;
 }
 .sidebar-signout-btn:hover{
-  background:rgba(196,92,92,0.14);border-color:rgba(196,92,92,0.5);
+  background:rgba(196,92,92,0.18);border-color:rgba(196,92,92,0.55);color:#ffb4b4;
 }
 .sidebar-footer-text{font-size:0.7rem;color:var(--text-subtle);letter-spacing:0.05em;text-align:center}
 

@@ -23,10 +23,11 @@ export default function App() {
   const { language, t } = useLanguage()
   const { user } = useAuth()
   const { activeConversation, createConversation } = useConversations()
+  const [selectedSystem, setSelectedSystem] = useState('')
   const [birthDetails, setBirthDetails] = useState({
-    dateOfBirth: '1984-12-05',
-    timeOfBirth: '02:11',
-    placeOfBirth: 'Eluru, Andhra Pradesh, India',
+    dateOfBirth: '',
+    timeOfBirth: '',
+    placeOfBirth: '',
     gender: '',
   })
   const [chartData, setChartData] = useState(null)
@@ -227,6 +228,7 @@ export default function App() {
         <Sidebar
           open={sidebarOpen}
           isDesktop={isDesktop}
+          chartCast={chartCast}
           onClose={closeSidebar}
           onToggle={toggleSidebar}
           onSelectConversation={handleSelectConversation}
