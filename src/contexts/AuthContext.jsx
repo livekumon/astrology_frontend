@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from '../constants/systems'
 import { getUiLanguage } from '../i18n/translations'
 import { apiUrl, parseJsonResponse } from '../api/config'
+import { collectDeviceProfile } from '../utils/deviceProfile'
 
 const AuthContext = createContext(null)
 
@@ -16,6 +17,29 @@ function applySession(setToken, setUser, data) {
   localStorage.setItem(TOKEN_KEY, data.token)
   setToken(data.token)
   setUser(data.user)
+}
+
+async function withDeviceProfile(payload) {
+  const profile = await collectDeviceProfile()
+  return { ...payload, ...profile }
+}
+
+async function syncDeviceProfile(token) {
+  if (!token) return
+
+  try {
+    const profile = await collectDeviceProfile()
+    await fetch(apiUrl('/auth/device-profile'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(profile),
+    })
+  } catch {
+    // Non-blocking background sync
+  }
 }
 
 export function AuthProvider({ children }) {
@@ -38,8 +62,10 @@ export function AuthProvider({ children }) {
     })
       .then(async (r) => (r.ok ? parseJsonResponse(r) : null))
       .then((data) => {
-        if (data?.user) setUser(data.user)
-        else {
+        if (data?.user) {
+          setUser(data.user)
+          syncDeviceProfile(token)
+        } else {
           localStorage.removeItem(TOKEN_KEY)
           setToken(null)
         }
@@ -55,7 +81,7 @@ export function AuthProvider({ children }) {
     const res = await fetch(apiUrl('/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(await withDeviceProfile({ email, password })),
     })
     const data = await parseJsonResponse(res)
     if (!res.ok) throw new Error(data.message || 'Login failed')
@@ -67,12 +93,12 @@ export function AuthProvider({ children }) {
     const res = await fetch(apiUrl('/auth/register'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      body: JSON.stringify(await withDeviceProfile({
         name,
         email,
         password,
         language: readRegisterLanguage(),
-      }),
+      })),
     })
     const data = await parseJsonResponse(res)
     if (!res.ok) throw new Error(data.message || 'Registration failed')
@@ -84,10 +110,10 @@ export function AuthProvider({ children }) {
     const res = await fetch(apiUrl('/auth/google'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      body: JSON.stringify(await withDeviceProfile({
         credential,
         language: readRegisterLanguage(),
-      }),
+      })),
     })
     const data = await parseJsonResponse(res)
     if (!res.ok) throw new Error(data.message || 'Google sign-in failed')
