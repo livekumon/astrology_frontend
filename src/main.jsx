@@ -6,11 +6,13 @@ import GoogleAuthProvider from './components/auth/GoogleAuthProvider.jsx'
 import { LanguageProvider } from './i18n/LanguageContext.jsx'
 import { AuthProvider } from './contexts/AuthContext.jsx'
 import { ConversationProvider } from './contexts/ConversationContext.jsx'
+import GoogleAnalyticsSync from './components/analytics/GoogleAnalyticsSync.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <GoogleAuthProvider>
       <AuthProvider>
+        <GoogleAnalyticsSync />
         <LanguageProvider>
           <ConversationProvider>
             <App />
