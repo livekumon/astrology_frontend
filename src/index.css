@@ -461,6 +461,16 @@ nav{
   margin:8px 0 0;text-align:center;font-size:0.62rem;color:var(--text-subtle);
   letter-spacing:0.04em;
 }
+.chat-auth-gate{
+  flex-shrink:0;padding:1rem 1rem 1.25rem;
+  border-top:1px solid rgba(200,132,74,0.12);
+  background:rgba(10,13,18,0.92);backdrop-filter:blur(16px);
+}
+.chat-auth-gate-text{
+  margin:0 auto 0.85rem;max-width:32rem;text-align:center;
+  color:var(--text-secondary);font-size:0.92rem;line-height:1.5;
+}
+.chat-auth-gate-forms{max-width:24rem;margin:0 auto}
 .chat-composer .chat-voice-error{
   margin-top:8px;padding:0;border:none;background:transparent;text-align:center;
 }
@@ -1310,6 +1320,17 @@ h1 em{
 
 /* ── Auth Forms ── */
 .auth-forms{margin-top:10px}
+.auth-google-btn-wrap{
+  display:flex;justify-content:center;margin-bottom:4px;
+}
+.auth-google-btn-wrap.auth-google-disabled{opacity:0.55;pointer-events:none}
+.auth-divider{
+  display:flex;align-items:center;gap:10px;margin:12px 0 10px;
+  color:var(--text-subtle);font-size:var(--font-xs);
+}
+.auth-divider::before,.auth-divider::after{
+  content:'';flex:1;height:1px;background:rgba(200,132,74,0.18);
+}
 .auth-tabs{display:flex;gap:4px;margin-bottom:10px}
 .auth-tab{
   flex:1;padding:7px;border-radius:7px;border:1px solid rgba(200,132,74,0.2);

@@ -8,6 +8,7 @@ import { useVoiceInput } from '../hooks/useVoiceInput'
 import { useMicrophoneDevices } from '../hooks/useMicrophoneDevices'
 import DetailedExplanationModal from './DetailedExplanationModal'
 import MicIcon from './MicIcon'
+import AuthForms from './auth/AuthForms'
 
 function renderMessage(text) {
   const parts = text.split(/(<em>.*?<\/em>)/g)
@@ -182,7 +183,7 @@ export default function ChatSection({
 
   const handleSend = useCallback(async (question) => {
     const text = question.trim()
-    if (!text || sending) return
+    if (!text || sending || !user) return
 
     const history = messages.map((msg) => ({
       role: msg.role === 'user' ? 'user' : 'assistant',
@@ -248,7 +249,7 @@ export default function ChatSection({
                 <span className="chat-header-title-static">{t('askAstrologer')}</span>
               </div>
             )}
-            {!user && <p className="chat-header-hint">{t('signInToSave')}</p>}
+            {!user && <p className="chat-header-hint">{t('signInToContinueChat')}</p>}
           </div>
 
           <div className="chat-scroll" ref={messagesRef}>
@@ -285,7 +286,7 @@ export default function ChatSection({
                 </div>
               )}
 
-              {showSuggestions && (
+              {showSuggestions && user && (
                 <div className="chat-suggestions">
                   {QUICK_QUESTION_KEYS.map((key) => (
                     <button
@@ -303,6 +304,12 @@ export default function ChatSection({
             </div>
           </div>
 
+          {!user ? (
+            <div className="chat-auth-gate">
+              <p className="chat-auth-gate-text">{t('signInToContinueChat')}</p>
+              <AuthForms t={t} className="chat-auth-gate-forms" />
+            </div>
+          ) : (
           <div className="chat-composer">
             <div className="chat-composer-inner">
               <div className={`chat-composer-box${isListening ? ' listening' : ''}`}>
@@ -348,6 +355,7 @@ export default function ChatSection({
               <p className="chat-composer-disclaimer">{t('footerHint')}</p>
             </div>
           </div>
+          )}
         </div>
 
         <DetailedExplanationModal

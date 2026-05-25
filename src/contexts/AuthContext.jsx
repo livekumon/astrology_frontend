@@ -12,6 +12,12 @@ function readRegisterLanguage() {
   return getUiLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY) || DEFAULT_LANGUAGE)
 }
 
+function applySession(setToken, setUser, data) {
+  localStorage.setItem(TOKEN_KEY, data.token)
+  setToken(data.token)
+  setUser(data.user)
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY))
@@ -53,9 +59,7 @@ export function AuthProvider({ children }) {
     })
     const data = await parseJsonResponse(res)
     if (!res.ok) throw new Error(data.message || 'Login failed')
-    localStorage.setItem(TOKEN_KEY, data.token)
-    setToken(data.token)
-    setUser(data.user)
+    applySession(setToken, setUser, data)
     return data.user
   }, [])
 
@@ -72,9 +76,22 @@ export function AuthProvider({ children }) {
     })
     const data = await parseJsonResponse(res)
     if (!res.ok) throw new Error(data.message || 'Registration failed')
-    localStorage.setItem(TOKEN_KEY, data.token)
-    setToken(data.token)
-    setUser(data.user)
+    applySession(setToken, setUser, data)
+    return data.user
+  }, [])
+
+  const loginWithGoogle = useCallback(async (credential) => {
+    const res = await fetch(apiUrl('/auth/google'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        credential,
+        language: readRegisterLanguage(),
+      }),
+    })
+    const data = await parseJsonResponse(res)
+    if (!res.ok) throw new Error(data.message || 'Google sign-in failed')
+    applySession(setToken, setUser, data)
     return data.user
   }, [])
 
@@ -85,7 +102,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, patchUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, loginWithGoogle, logout, patchUser }}>
       {children}
     </AuthContext.Provider>
   )

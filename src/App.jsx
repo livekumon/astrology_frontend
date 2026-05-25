@@ -38,6 +38,7 @@ export default function App() {
   const [activeChartView, setActiveChartView] = useState(null)
   const [mobileTab, setMobileTab] = useState('home')
   const chatRef = useRef(null)
+  const guestConversationCreatedRef = useRef(false)
 
   const chartCast = !!chartData
   const isMobile = !isDesktop
@@ -51,6 +52,14 @@ export default function App() {
       setMobileTab('chat')
     }
   }, [chartCast, isMobile, mobileTab])
+
+  useEffect(() => {
+    if (!user || !chartData || activeConversation || guestConversationCreatedRef.current) return
+
+    guestConversationCreatedRef.current = true
+    const name = `${chartData.placeOfBirth || birthDetails.placeOfBirth || 'Reading'} – ${new Date().toLocaleDateString()}`
+    createConversation({ ...chartData, language }, language, name)
+  }, [user, chartData, activeConversation, createConversation, language, birthDetails.placeOfBirth])
 
   function handleBirthDetailsChange(updates) {
     setBirthDetails((prev) => ({ ...prev, ...updates }))
@@ -83,6 +92,7 @@ export default function App() {
   }
 
   function handleEditChart() {
+    guestConversationCreatedRef.current = false
     setChartData(null)
     setActiveChartView(null)
     setError('')

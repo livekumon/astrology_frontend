@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import GoogleSignInButton, { isGoogleSignInEnabled } from './GoogleSignInButton'
 
 export default function AuthForms({ onClose, t, className = '' }) {
-  const { login, register } = useAuth()
+  const { login, register, loginWithGoogle } = useAuth()
   const [mode, setMode] = useState('login')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const googleEnabled = isGoogleSignInEnabled()
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -25,13 +27,40 @@ export default function AuthForms({ onClose, t, className = '' }) {
     }
   }
 
+  async function handleGoogleSuccess(credential) {
+    setError('')
+    setBusy(true)
+    try {
+      await loginWithGoogle(credential)
+      onClose?.()
+    } catch (err) {
+      setError(err.message || t('googleSignInFailed'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className={`auth-forms${className ? ` ${className}` : ''}`}>
+      {googleEnabled && (
+        <>
+          <GoogleSignInButton
+            disabled={busy}
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError(t('googleSignInFailed'))}
+          />
+          <div className="auth-divider">
+            <span>{t('orContinueWithEmail')}</span>
+          </div>
+        </>
+      )}
+
       <div className="auth-tabs">
         <button
           type="button"
           className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
           onClick={() => { setMode('login'); setError('') }}
+          disabled={busy}
         >
           {t('signIn')}
         </button>
@@ -39,6 +68,7 @@ export default function AuthForms({ onClose, t, className = '' }) {
           type="button"
           className={`auth-tab ${mode === 'register' ? 'active' : ''}`}
           onClick={() => { setMode('register'); setError('') }}
+          disabled={busy}
         >
           {t('register')}
         </button>
@@ -52,6 +82,7 @@ export default function AuthForms({ onClose, t, className = '' }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            disabled={busy}
           />
         )}
         <input
@@ -61,6 +92,7 @@ export default function AuthForms({ onClose, t, className = '' }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={busy}
         />
         <input
           className="auth-input"
@@ -70,6 +102,7 @@ export default function AuthForms({ onClose, t, className = '' }) {
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={6}
+          disabled={busy}
         />
         {error && <p className="auth-error">{error}</p>}
         <button className="auth-submit" type="submit" disabled={busy}>
