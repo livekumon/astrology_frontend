@@ -23,8 +23,6 @@ export default function App() {
   const { language, t } = useLanguage()
   const { user } = useAuth()
   const { activeConversation, createConversation } = useConversations()
-
-  const [selectedSystem, setSelectedSystem] = useState('South Indian Vedic')
   const [birthDetails, setBirthDetails] = useState({
     dateOfBirth: '1984-12-05',
     timeOfBirth: '02:11',
@@ -222,6 +220,7 @@ export default function App() {
         'app-shell',
         chartCast ? 'app-shell-locked' : 'app-shell-create',
         isMobile ? 'app-shell-mobile' : '',
+        isMobile && user ? 'app-shell-signed-in' : '',
       ].filter(Boolean).join(' ')}
     >
       {isDesktop && (

@@ -79,7 +79,6 @@ export default function Sidebar({
                   <span className="sidebar-user-name">{user.name}</span>
                   <span className="sidebar-user-email">{user.email}</span>
                 </div>
-                <button type="button" className="sidebar-logout-btn" onClick={logout} title={t('signOut')}>↪</button>
               </div>
             ) : (
               <div className="sidebar-guest">
@@ -113,6 +112,11 @@ export default function Sidebar({
           )}
 
           <div className="sidebar-footer">
+            {user && (
+              <button type="button" className="sidebar-signout-btn" onClick={logout}>
+                {t('signOut')}
+              </button>
+            )}
             <p className="sidebar-footer-text">✦ {t('footerHint')}</p>
           </div>
         </div>
